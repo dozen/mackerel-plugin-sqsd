@@ -1,0 +1,126 @@
+version: 2
+jobs:
+  checkout_code:
+    docker:
+      - image: circleci/golang:1.10
+    working_directory: /go/src/github.com/dozen/mackerel-plugin-sqsd
+    steps:
+      - checkout
+      - save_cache:
+          key: v0.0.0-repo-{{ .Environment.CIRCLE_SHA1 }}
+          paths:
+            - /go/src/github.com/dozen/mackerel-plugin-sqsd
+
+  build_depends:
+    docker:
+      - image: circleci/golang:1.10
+    working_directory: /go/src/github.com/dozen/mackerel-plugin-sqsd
+    environment:
+      - CGO_ENABLED: 0
+    steps:
+      - restore_cache:
+          key: v0.0.0-repo-{{ .Environment.CIRCLE_SHA1 }}
+      - restore_cache:
+          key: v0.0.0-get-tools-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
+      - run: go get golang.org/x/vgo github.com/Songmu/goxz/cmd/goxz github.com/tcnksm/ghr
+      - save_cache:
+          key: v0.0.0-get-tools-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
+          paths:
+            - /go/bin/vgo
+            - /go/bin/goxz
+            - /go/bin/ghr
+      - run: vgo get -v && vgo mod -vendor
+      - save_cache:
+          key: v0.0.0-get-tools-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
+          paths:
+            - /go/src/mod
+            - /go/src/github.com/dozen/mackerel-plugin-sqsd/vendor
+      - run:
+          name: run test
+          command: |
+            vgo test -v .
+
+  test:
+    docker:
+      - image: circleci/golang:1.10
+    working_directory: /go/src/github.com/dozen/mackerel-plugin-sqsd
+    environment:
+      - CGO_ENABLED: 0
+    steps:
+      - restore_cache:
+          key: v0.0.0-repo-{{ .Environment.CIRCLE_SHA1 }}
+      - restore_cache:
+          key: v0.0.0-get-tools-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
+      - restore_cache:
+          key: v0.0.0-vgo-get-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
+      - run:
+          name: run test
+          command: |
+            vgo test -v .
+
+  build:
+    docker:
+      - image: circleci/golang:1.10
+    working_directory: /go/src/github.com/dozen/mackerel-plugin-sqsd
+    environment:
+      - CGO_ENABLED: 0
+    steps:
+      - restore_cache:
+          key: v0.0.0-repo-{{ .Environment.CIRCLE_SHA1 }}
+      - restore_cache:
+          key: v0.0.0-get-tools-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
+      - restore_cache:
+          key: v0.0.0-vgo-get-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
+      - run: make build
+      - save_cache:
+          key: v0.0.0-make-build-{{ .Environment.CIRCLE_SHA1 }}
+          paths:
+            - /go/src/github.com/dozen/mackerel-plugin-sqsd/dist/
+
+  release:
+    docker:
+      - image: circleci/golang:1.10
+    working_directory: /go/src/github.com/dozen/mackerel-plugin-sqsd
+    steps:
+      - restore_cache:
+          key: v0.0.0-repo-{{ .Environment.CIRCLE_SHA1 }}
+      - restore_cache:
+          key: v0.0.0-get-tools-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
+      - restore_cache:
+          key: v0.0.0-vgo-get-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
+      - restore_cache:
+          key: v0.0.0-make-build-{{ .Environment.CIRCLE_SHA1 }}
+      - run: make release
+
+workflows:
+  version: 2
+  release:
+    jobs:
+      - checkout_code
+      - build_depends:
+          requires:
+            - checkout_code
+      - test:
+          requires:
+            - build_depends
+      - build:
+          requires:
+            - build_depends
+          filters:
+            tags:
+              only:
+                - /v[0-9]+\.[0-9]+\.[0-9]+/
+            branches:
+              ignore:
+                - /.*/
+      - release:
+          requires:
+            - test
+            - build
+          filters:
+            tags:
+              only:
+                - /v[0-9]+\.[0-9]+\.[0-9]+/
+            branches:
+              ignore:
+                - /.*/
