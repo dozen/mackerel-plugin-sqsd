@@ -1,59 +1,58 @@
 version: 2
 jobs:
-  checkout_code:
+  build_depends:
     docker:
       - image: circleci/golang:1.11
     working_directory: /go/src/github.com/dozen/mackerel-plugin-sqsd
-    steps:
-      - checkout
-      - save_cache:
-          key: v0.0.0-repo-{{ .Environment.CIRCLE_SHA1 }}
-          paths:
-            - /go/src/github.com/dozen/mackerel-plugin-sqsd
-
-  build_depends:
-    docker:
-      - image: circleci/golang:1.10
-    working_directory: /go/src/github.com/dozen/mackerel-plugin-sqsd
     environment:
       - CGO_ENABLED: 0
-      - GO111MODULE: on
+      - GO111MODULE: "on"
     steps:
+      - run:
+          name: Update PATH and Define Environment Variable at Runtime
+          command: |
+            echo 'export PATH=~/bin:$PATH' >> $BASH_ENV
+            source $BASH_ENV
+      - checkout
       - restore_cache:
-          key: v0.0.0-repo-{{ .Environment.CIRCLE_SHA1 }}
-      - restore_cache:
-          key: v0.0.0-get-tools-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
-      - run: go get github.com/Songmu/goxz/cmd/goxz github.com/tcnksm/ghr
+          key: v0.0.1-go-tools-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
+      - run: |
+          if [ -d ~/bin ]; then exit 0; fi && \
+          mkdir -p ~/bin && \
+          curl -LO https://github.com/Songmu/goxz/releases/download/v0.1.0/goxz_v0.1.0_linux_amd64.tar.gz && \
+          tar xvf goxz_v0.1.0_linux_amd64.tar.gz && \
+          install goxz_v0.1.0_linux_amd64/goxz ~/bin/ && \
+          curl -LO https://github.com/tcnksm/ghr/releases/download/v0.12.0/ghr_v0.12.0_linux_amd64.tar.gz && \
+          tar xvf ghr_v0.12.0_linux_amd64.tar.gz && \
+          install ghr_v0.12.0_linux_amd64/ghr ~/bin/
       - save_cache:
-          key: v0.0.0-get-tools-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
+          key: v0.0.1-go-tools-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
           paths:
-            - /go/bin/goxz
-            - /go/bin/ghr
+            - ~/bin
       - run: go get -v
       - save_cache:
-          key: v0.0.0-get-tools-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
+          key: v0.0.1-go-get-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
           paths:
             - /go/pkg/mod
-            - /go/src/github.com/dozen/mackerel-plugin-sqsd/vendor
-      - run:
-          name: run test
-          command: |
-            go test -v .
 
   test:
     docker:
-      - image: circleci/golang:1.10
+      - image: circleci/golang:1.11
     working_directory: /go/src/github.com/dozen/mackerel-plugin-sqsd
     environment:
       - CGO_ENABLED: 0
-      - GO111MODULE: on
+      - GO111MODULE: "on"
     steps:
+      - run:
+          name: Update PATH and Define Environment Variable at Runtime
+          command: |
+            echo 'export PATH=~/bin:$PATH' >> $BASH_ENV
+            source $BASH_ENV
+      - checkout
       - restore_cache:
-          key: v0.0.0-repo-{{ .Environment.CIRCLE_SHA1 }}
+          key: v0.0.1-go-tools-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
       - restore_cache:
-          key: v0.0.0-get-tools-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
-      - restore_cache:
-          key: v0.0.0-go-get-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
+          key: v0.0.1-go-get-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
       - run:
           name: run test
           command: |
@@ -61,68 +60,82 @@ jobs:
 
   build:
     docker:
-      - image: circleci/golang:1.10
+      - image: circleci/golang:1.11
     working_directory: /go/src/github.com/dozen/mackerel-plugin-sqsd
     environment:
       - CGO_ENABLED: 0
-      - GO111MODULE: on
+      - GO111MODULE: "on"
     steps:
+      - run:
+          name: Update PATH and Define Environment Variable at Runtime
+          command: |
+            echo 'export PATH=~/bin:$PATH' >> $BASH_ENV
+            source $BASH_ENV
+      - checkout
       - restore_cache:
-          key: v0.0.0-repo-{{ .Environment.CIRCLE_SHA1 }}
+          key: v0.0.1-go-tools-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
       - restore_cache:
-          key: v0.0.0-get-tools-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
-      - restore_cache:
-          key: v0.0.0-go-get-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
+          key: v0.0.1-go-get-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
       - run: make build
       - save_cache:
-          key: v0.0.0-make-build-{{ .Environment.CIRCLE_SHA1 }}
+          key: v0.0.1-make-build-{{ .Environment.CIRCLE_SHA1 }}
           paths:
             - /go/src/github.com/dozen/mackerel-plugin-sqsd/dist/
 
   release:
     docker:
-      - image: circleci/golang:1.10
+      - image: circleci/golang:1.11
     working_directory: /go/src/github.com/dozen/mackerel-plugin-sqsd
     steps:
+      - run:
+          name: Update PATH and Define Environment Variable at Runtime
+          command: |
+            echo 'export PATH=~/bin:$PATH' >> $BASH_ENV
+            source $BASH_ENV
+      - checkout
       - restore_cache:
-          key: v0.0.0-repo-{{ .Environment.CIRCLE_SHA1 }}
+          key: v0.0.1-go-tools-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
       - restore_cache:
-          key: v0.0.0-get-tools-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
+          key: v0.0.1-go-get-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
       - restore_cache:
-          key: v0.0.0-go-get-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
-      - restore_cache:
-          key: v0.0.0-make-build-{{ .Environment.CIRCLE_SHA1 }}
+          key: v0.0.1-make-build-{{ .Environment.CIRCLE_SHA1 }}
       - run: make release
 
 workflows:
   version: 2
-  release:
+  test:
     jobs:
-      - checkout_code
-      - build_depends:
-          requires:
-            - checkout_code
+      - build_depends
       - test:
           requires:
             - build_depends
       - build:
           requires:
             - build_depends
+  release:
+    jobs:
+      - build_depends:
           filters:
             tags:
-              only:
-                - /v[0-9]+\.[0-9]+\.[0-9]+/
-            branches:
-              ignore:
-                - /.*/
+              only: /^v.*/
+      - test:
+          requires:
+            - build_depends
+          filters:
+            tags:
+              only: /^v.*/
+      - build:
+          requires:
+            - build_depends
+          filters:
+            tags:
+              only: /^v.*/
       - release:
           requires:
             - test
             - build
           filters:
-            tags:
-              only:
-                - /v[0-9]+\.[0-9]+\.[0-9]+/
             branches:
-              ignore:
-                - /.*/
+              ignore: /.*/
+            tags:
+              only: /^v.*/
