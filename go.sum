@@ -1,3 +1,4 @@
 github.com/mackerelio/go-mackerel-plugin v0.0.0-20180209101414-3980df9bc631 h1:mrem/AMQlGK4aCaG4Y+JJugP3EwTlqWAFKwwfGjknQ8=
 github.com/mackerelio/go-mackerel-plugin v0.0.0-20180209101414-3980df9bc631/go.mod h1:cnhQn7nt6mOZKBya/EA/Bn0RxHDrKJv1XdXoUbiKl2I=
+github.com/mackerelio/golib v0.0.0-20180329014158-ca1d7fa7b764 h1:ZSNOLsSini4LAbIEZ5X4K521Y2hSAziu1RQNmAVp0Oo=
 github.com/mackerelio/golib v0.0.0-20180329014158-ca1d7fa7b764/go.mod h1:QQXnbzDaHtoPLMpOFWMWyLhxJMBqKEwM5gs6rz+fBxk=
