@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 
 	mp "github.com/mackerelio/go-mackerel-plugin"
 )
@@ -47,16 +48,17 @@ func (ss sqsdStats) ToMackerelMetrics() map[string]float64 {
 }
 
 func (p SqsdPlugin) GraphDefinition() map[string]mp.Graphs {
+	labelPrefix := strings.Title(p.Prefix)
 	return map[string]mp.Graphs{
-		"": {
-			Label: "",
+		"is_working": {
+			Label: labelPrefix + " IsWorking",
 			Unit:  mp.UnitInteger,
 			Metrics: []mp.Metrics{
 				{Name: "is_working", Label: "IsWorking"},
 			},
 		},
 		"workers": {
-			Label: "Workers",
+			Label: labelPrefix + " Workers",
 			Unit:  mp.UnitInteger,
 			Metrics: []mp.Metrics{
 				{Name: "max", Label: "Max"},
@@ -65,7 +67,7 @@ func (p SqsdPlugin) GraphDefinition() map[string]mp.Graphs {
 			},
 		},
 		"jobs": {
-			Label: "Jobs",
+			Label: labelPrefix + " Jobs",
 			Unit:  mp.UnitInteger,
 			Metrics: []mp.Metrics{
 				{Name: "handled", Label: "Handled", Diff: true},
