@@ -17,28 +17,28 @@ jobs:
     working_directory: /go/src/github.com/dozen/mackerel-plugin-sqsd
     environment:
       - CGO_ENABLED: 0
+      - GO111MODULE: on
     steps:
       - restore_cache:
           key: v0.0.0-repo-{{ .Environment.CIRCLE_SHA1 }}
       - restore_cache:
           key: v0.0.0-get-tools-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
-      - run: go get golang.org/x/vgo github.com/Songmu/goxz/cmd/goxz github.com/tcnksm/ghr
+      - run: go get github.com/Songmu/goxz/cmd/goxz github.com/tcnksm/ghr
       - save_cache:
           key: v0.0.0-get-tools-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
           paths:
-            - /go/bin/vgo
             - /go/bin/goxz
             - /go/bin/ghr
-      - run: vgo get -v && vgo mod -vendor
+      - run: go get -v
       - save_cache:
           key: v0.0.0-get-tools-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
           paths:
-            - /go/src/mod
+            - /go/pkg/mod
             - /go/src/github.com/dozen/mackerel-plugin-sqsd/vendor
       - run:
           name: run test
           command: |
-            vgo test -v .
+            go test -v .
 
   test:
     docker:
@@ -46,17 +46,18 @@ jobs:
     working_directory: /go/src/github.com/dozen/mackerel-plugin-sqsd
     environment:
       - CGO_ENABLED: 0
+      - GO111MODULE: on
     steps:
       - restore_cache:
           key: v0.0.0-repo-{{ .Environment.CIRCLE_SHA1 }}
       - restore_cache:
           key: v0.0.0-get-tools-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
       - restore_cache:
-          key: v0.0.0-vgo-get-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
+          key: v0.0.0-go-get-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
       - run:
           name: run test
           command: |
-            vgo test -v .
+            go test -v .
 
   build:
     docker:
@@ -64,13 +65,14 @@ jobs:
     working_directory: /go/src/github.com/dozen/mackerel-plugin-sqsd
     environment:
       - CGO_ENABLED: 0
+      - GO111MODULE: on
     steps:
       - restore_cache:
           key: v0.0.0-repo-{{ .Environment.CIRCLE_SHA1 }}
       - restore_cache:
           key: v0.0.0-get-tools-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
       - restore_cache:
-          key: v0.0.0-vgo-get-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
+          key: v0.0.0-go-get-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
       - run: make build
       - save_cache:
           key: v0.0.0-make-build-{{ .Environment.CIRCLE_SHA1 }}
@@ -87,7 +89,7 @@ jobs:
       - restore_cache:
           key: v0.0.0-get-tools-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
       - restore_cache:
-          key: v0.0.0-vgo-get-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
+          key: v0.0.0-go-get-{{ checksum "go.mod" }}-{{ checksum "go.sum" }}
       - restore_cache:
           key: v0.0.0-make-build-{{ .Environment.CIRCLE_SHA1 }}
       - run: make release

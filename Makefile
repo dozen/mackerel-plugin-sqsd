@@ -10,11 +10,11 @@ setup:
 
 build: dist/$(TAG)
 
-dist/$(TAG): vendor
-	CGO_ENABLED=0 goxz -d dist/$(TAG) -z -os darwin,linux -arch amd64,386
+goget:
+	go get -v
 
-vendor:
-	vgo mod -vendor
+dist/$(TAG): goget
+	GO111MODULE=on CGO_ENABLED=0 goxz -d dist/$(TAG) -z -os darwin,linux -arch amd64,386
 
 release: dist/$(TAG)
 	ghr -u dozen -r mackerel-plugin-sqsd $(TAG) dist/$(TAG)
