@@ -47,7 +47,7 @@ func (ss sqsdStats) ToMackerelMetrics() map[string]float64 {
 	}
 }
 
-func (p SqsdPlugin) GraphDefinition() map[string]mp.Graphs {
+func (p *SqsdPlugin) GraphDefinition() map[string]mp.Graphs {
 	labelPrefix := strings.Title(p.Prefix)
 	return map[string]mp.Graphs{
 		"is_working": {
@@ -79,7 +79,7 @@ func (p SqsdPlugin) GraphDefinition() map[string]mp.Graphs {
 }
 
 // FetchMetrics interface for mackerel-plugin
-func (p SqsdPlugin) FetchMetrics() (map[string]float64, error) {
+func (p *SqsdPlugin) FetchMetrics() (map[string]float64, error) {
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: p.InsecureSkipVerify},
 	}
@@ -98,7 +98,7 @@ func (p SqsdPlugin) FetchMetrics() (map[string]float64, error) {
 	return stats.ToMackerelMetrics(), nil
 }
 
-func (p SqsdPlugin) MetricKeyPrefix() string {
+func (p *SqsdPlugin) MetricKeyPrefix() string {
 	if p.Prefix == "" {
 		p.Prefix = "sqsd"
 	}
@@ -118,11 +118,11 @@ func Do() {
 		os.Exit(1)
 	}
 
-	var plugin SqsdPlugin
-
-	plugin.URL = *url
-	plugin.Prefix = *prefix
-	plugin.InsecureSkipVerify = *insecure
+	plugin := &SqsdPlugin{
+		URL:                *url,
+		Prefix:             *prefix,
+		InsecureSkipVerify: *insecure,
+	}
 
 	helper := mp.NewMackerelPlugin(plugin)
 	helper.Tempfile = *tempfile
