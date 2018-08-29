@@ -48,7 +48,7 @@ func (ss sqsdStats) ToMackerelMetrics() map[string]float64 {
 }
 
 func (p *SqsdPlugin) GraphDefinition() map[string]mp.Graphs {
-	labelPrefix := strings.Title(p.Prefix)
+	labelPrefix := strings.Title(p.MetricKeyPrefix())
 	return map[string]mp.Graphs{
 		"is_working": {
 			Label: labelPrefix + " IsWorking",
