@@ -116,18 +116,24 @@ workflows:
     jobs:
       - build_depends:
           filters:
+            branches:
+              ignore: /.*/
             tags:
               only: /^v.*/
       - test:
           requires:
             - build_depends
           filters:
+            branches:
+              ignore: /.*/
             tags:
               only: /^v.*/
       - build:
           requires:
             - build_depends
           filters:
+            branches:
+              ignore: /.*/
             tags:
               only: /^v.*/
       - release:
