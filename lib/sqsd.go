@@ -70,9 +70,9 @@ func (p *SqsdPlugin) GraphDefinition() map[string]mp.Graphs {
 			Label: labelPrefix + " Jobs",
 			Unit:  mp.UnitInteger,
 			Metrics: []mp.Metrics{
-				{Name: "handled", Label: "Handled", Diff: true},
-				{Name: "succeeded", Label: "Succeeded", Diff: true},
-				{Name: "failed", Label: "Failed", Diff: true},
+				{Name: "handled", Label: "Handled", Diff: true, Stacked: false},
+				{Name: "succeeded", Label: "Succeeded", Diff: true, Stacked: true},
+				{Name: "failed", Label: "Failed", Diff: true, Stacked: true},
 			},
 		},
 	}
